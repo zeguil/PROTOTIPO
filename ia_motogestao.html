@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MotoGestão · IA WhatsApp</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080b10;--s1:#0e1219;--s2:#141820;--s3:#1c2130;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);--amber:#f59e0b;--amber-g:rgba(245,158,11,.15);--emerald:#10b981;--emerald-g:rgba(16,185,129,.13);--rose:#f43f5e;--rose-g:rgba(244,63,94,.13);--sky:#38bdf8;--sky-g:rgba(56,189,248,.13);--violet:#a78bfa;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;--r-md:16px;--r-lg:22px;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);min-height:100vh;}
+.shell{max-width:420px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;}
+.shell::before{content:'';position:fixed;top:-80px;left:-40px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+.statusbar{display:flex;justify-content:space-between;align-items:center;padding:14px 22px 0;position:relative;z-index:10;}
+.sb-time{font-family:'Bebas Neue';font-size:17px;letter-spacing:1px;}
+.content{overflow-y:auto;height:calc(100vh - 70px);padding-bottom:90px;-webkit-overflow-scrolling:touch;}
+.content::-webkit-scrollbar{display:none;}
+.page-header{padding:12px 20px 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.page-title{font-family:'Bebas Neue';font-size:32px;letter-spacing:2px;}
+.page-title span{color:var(--violet);}
+.section{padding:0 16px;margin-bottom:20px;}
+.section-title{font-family:'Bebas Neue';font-size:18px;letter-spacing:1.5px;color:var(--text2);margin-bottom:12px;}
+
+/* Status card */
+.status-card{margin:0 16px 20px;background:linear-gradient(135deg,#16102a,#0e0b1e);border:1.5px solid rgba(167,139,250,.25);border-radius:var(--r-lg);padding:20px;position:relative;overflow:hidden;}
+.status-card::before{content:'';position:absolute;bottom:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.12),transparent 70%);}
+.status-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.status-badge{display:flex;align-items:center;gap:8px;background:var(--emerald-g);border:1px solid rgba(16,185,129,.3);border-radius:99px;padding:6px 14px;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--emerald);box-shadow:0 0 8px var(--emerald);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+.status-badge-text{font-size:12px;font-weight:700;color:var(--emerald);}
+.status-responses{font-family:'Bebas Neue';font-size:38px;letter-spacing:2px;color:var(--violet);}
+.status-label{font-size:11px;color:var(--text2);margin-top:2px;}
+.status-topics{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.topic-chip{padding:5px 12px;border-radius:99px;font-size:11px;font-weight:600;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:var(--violet);}
+
+/* Metrics */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 16px 20px;}
+.stat-tile{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px 10px;text-align:center;}
+.stat-val{font-family:'Bebas Neue';font-size:24px;letter-spacing:1px;line-height:1;}
+.stat-label{font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:3px;}
+
+/* Conversations */
+.conv-item{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;}
+.conv-item:active{border-color:var(--border2);}
+.conv-avatar{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:16px;flex-shrink:0;}
+.conv-info{flex:1;min-width:0;}
+.conv-name{font-size:13px;font-weight:700;color:var(--text);}
+.conv-preview{font-size:11px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.conv-right{text-align:right;flex-shrink:0;}
+.conv-time{font-size:10px;color:var(--text3);}
+.conv-badge{width:18px;height:18px;background:var(--violet);border-radius:50%;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;margin:4px 0 0 auto;}
+
+/* Chat simulation */
+.chat-window{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin:0 16px 20px;}
+.chat-header{background:var(--s3);padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+.chat-header-avatar{width:36px;height:36px;border-radius:10px;background:rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:14px;color:var(--emerald);}
+.chat-header-name{font-size:13px;font-weight:700;}
+.chat-header-status{font-size:11px;color:var(--emerald);display:flex;align-items:center;gap:4px;}
+.chat-messages{padding:14px;display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;}
+.chat-messages::-webkit-scrollbar{display:none;}
+.msg{max-width:82%;padding:10px 13px;border-radius:16px;font-size:13px;line-height:1.5;}
+.msg.received{background:var(--s3);border:1px solid var(--border2);border-bottom-left-radius:4px;color:var(--text);align-self:flex-start;}
+.msg.sent{background:linear-gradient(135deg,#1d2f3d,#132033);border-bottom-right-radius:4px;color:#c7e9ff;align-self:flex-end;}
+.msg-sender{font-size:10px;font-weight:700;margin-bottom:3px;}
+.msg-time{font-size:9px;opacity:.45;margin-top:4px;text-align:right;}
+.msg-tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
+.tag-price{background:rgba(245,158,11,.15);color:var(--amber);}
+.tag-avail{background:var(--emerald-g);color:var(--emerald);}
+.tag-delay{background:var(--rose-g);color:var(--rose);}
+.tag-renew{background:var(--violet-g);color:var(--violet);}
+
+.chat-input-row{padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.chat-input{flex:1;background:var(--s3);border:1.5px solid var(--border2);border-radius:12px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;font-family:'Plus Jakarta Sans',sans-serif;}
+.chat-input::placeholder{color:var(--text3);}
+.chat-send{width:36px;height:36px;border-radius:10px;background:var(--violet);border:none;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;color:#fff;}
+
+/* Toggle config */
+.config-card{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:0;overflow:hidden;margin:0 16px 20px;}
+.config-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);}
+.config-item:last-child{border-bottom:none;}
+.config-left{}
+.config-title{font-size:13px;font-weight:600;color:var(--text);}
+.config-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.toggle{width:44px;height:24px;border-radius:99px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;}
+.toggle.on{background:var(--violet);}
+.toggle.off{background:var(--s3);border:1.5px solid var(--border2);}
+.toggle-knob{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;transition:left .2s;}
+.toggle.on .toggle-knob{left:23px;}
+.toggle.off .toggle-knob{left:3px;}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:rgba(8,11,16,.96);backdrop-filter:blur(20px);border-top:1px solid var(--border2);display:flex;padding:10px 0 20px;z-index:100;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px 0;}
+.bnav-icon{font-size:22px;transition:transform .2s;}
+.bnav-label{font-size:10px;font-weight:600;color:var(--text3);transition:color .2s;}
+.bnav-item.active .bnav-label{color:var(--violet);}
+.bnav-item.active .bnav-icon{transform:scale(1.15);}
+.bnav-dot{width:6px;height:6px;border-radius:50%;background:var(--rose);position:absolute;top:2px;right:calc(50% - 14px);}
+.bnav-item{position:relative;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="statusbar">
+    <!-- <div class="sb-time">09:41</div>
+    <svg width="22" height="12" viewBox="0 0 22 12" fill="none"><rect x=".5" y=".5" width="18" height="11" rx="3.5" stroke="#475569"/><rect x="2" y="2" width="14" height="8" rx="2" fill="#a78bfa"/><path d="M20 4v4a2 2 0 000-4z" fill="#475569"/></svg> -->
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <div>
+        <div style="font-size:11px;color:var(--text3);font-weight:500;margin-bottom:2px">Automação Inteligente</div>
+        <div class="page-title">IA <span>WhatsApp</span></div>
+      </div>
+      <div style="width:40px;height:40px;border-radius:10px;background:var(--s2);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer">⚙️</div>
+    </div>
+
+    <!-- Status -->
+    <div class="status-card">
+      <div class="status-top">
+        <div>
+          <div class="status-badge">
+            <div class="status-dot"></div>
+            <div class="status-badge-text">IA Ativa e Respondendo</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="status-responses">247</div>
+          <div class="status-label">msgs hoje</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Responde automaticamente sobre:</div>
+      <div class="status-topics">
+        <div class="topic-chip">💰 Preço</div>
+        <div class="topic-chip">✅ Disponibilidade</div>
+        <div class="topic-chip">⚠️ Atraso</div>
+        <div class="topic-chip">🔄 Renovação</div>
+        <div class="topic-chip">📋 Contrato</div>
+        <div class="topic-chip">🏍️ Modelos</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-tile">
+        <div class="stat-val" style="color:var(--violet)">247</div>
+        <div class="stat-label">Msgs Hoje</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-val" style="color:var(--emerald)">94%</div>
+        <div class="stat-label">Auto-resp.</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-val" style="color:var(--amber)">1m 12s</div>
+        <div class="stat-label">Resp. Médio</div>
+      </div>
+    </div>
+
+    <!-- Conversas recentes -->
+    <div class="section">
+      <div class="section-title">Conversas Recentes</div>
+      <div class="conv-item">
+        <div class="conv-avatar" style="background:rgba(245,158,11,.15);color:var(--amber)">AL</div>
+        <div class="conv-info">
+          <div class="conv-name">Anderson Lopes</div>
+          <div class="conv-preview">🤖 Seu contrato vence em 5 dias. Deseja renovar?</div>
+        </div>
+        <div class="conv-right">
+          <div class="conv-time">09:38</div>
+          <div class="conv-badge">2</div>
+        </div>
+      </div>
+      <div class="conv-item">
+        <div class="conv-avatar" style="background:rgba(56,189,248,.15);color:var(--sky)">FS</div>
+        <div class="conv-info">
+          <div class="conv-name">Felipe Santos</div>
+          <div class="conv-preview">🤖 Temos 2 motos disponíveis a partir de R$600...</div>
+        </div>
+        <div class="conv-right">
+          <div class="conv-time">09:21</div>
+          <div class="conv-badge">1</div>
+        </div>
+      </div>
+      <div class="conv-item">
+        <div class="conv-avatar" style="background:rgba(244,63,94,.15);color:var(--rose)">CM</div>
+        <div class="conv-info">
+          <div class="conv-name">Carlos Mendes</div>
+          <div class="conv-preview">🤖 Você possui R$650 em aberto há 35 dias...</div>
+        </div>
+        <div class="conv-right">
+          <div class="conv-time">08:55</div>
+          <div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat simulado -->
+    <div style="padding:0 16px 0;margin-bottom:8px"><div class="section-title">Simular Conversa</div></div>
+    <div class="chat-window">
+      <div class="chat-header">
+        <div class="chat-header-avatar">FS</div>
+        <div>
+          <div class="chat-header-name">Felipe Santos</div>
+          <div class="chat-header-status"><span style="width:6px;height:6px;border-radius:50%;background:var(--emerald);display:inline-block"></span> Online agora</div>
+        </div>
+        <div style="margin-left:auto;font-size:20px">📲</div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="msg received">
+          <div class="msg-sender" style="color:var(--text2)">👤 Felipe Santos</div>
+          Oi! Vocês têm moto disponível pra alugar? Qual o preço?
+          <div class="msg-time">09:18</div>
+        </div>
+        <div class="msg sent">
+          <div class="msg-sender" style="color:var(--violet)">🤖 MotoGestão IA</div>
+          <span class="msg-tag tag-price">Preço</span><br>
+          Olá, Felipe! 👋 Temos motos a partir de <strong>R$600/mês</strong>. Atualmente disponíveis:<br><br>
+          🏍️ Yamaha Crypton 115 — R$600/mês<br>
+          🏍️ Yamaha Factor 150 — R$750/mês<br><br>
+          Quer agendar uma visita?
+          <div class="msg-time">09:18 ✓✓</div>
+        </div>
+        <div class="msg received">
+          <div class="msg-sender" style="color:var(--text2)">👤 Felipe Santos</div>
+          A Crypton tá disponível ainda?
+          <div class="msg-time">09:20</div>
+        </div>
+        <div class="msg sent">
+          <div class="msg-sender" style="color:var(--violet)">🤖 MotoGestão IA</div>
+          <span class="msg-tag tag-avail">Disponibilidade</span><br>
+          ✅ Sim! A Yamaha Crypton 115 (placa OPK-7723, ano 2023) está <strong>disponível agora</strong>. Posso te passar os detalhes do contrato?
+          <div class="msg-time">09:21 ✓✓</div>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <span>😊</span>
+        <input class="chat-input" id="chatInput" type="text" placeholder="Digite uma mensagem de teste..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="chat-send" onclick="sendMsg()">➤</button>
+      </div>
+    </div>
+
+    <!-- Configurações da IA -->
+    <div style="padding:0 16px 0;margin-bottom:8px"><div class="section-title">Configurações da IA</div></div>
+    <div class="config-card">
+      <div class="config-item">
+        <div class="config-left">
+          <div class="config-title">Resposta automática</div>
+          <div class="config-sub">IA responde mensagens automaticamente</div>
+        </div>
+        <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="config-item">
+        <div class="config-left">
+          <div class="config-title">Cobranças automáticas</div>
+          <div class="config-sub">Notifica inadimplentes via IA</div>
+        </div>
+        <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="config-item">
+        <div class="config-left">
+          <div class="config-title">Lembrete de vencimento</div>
+          <div class="config-sub">Avisa 5 dias antes do vencimento</div>
+        </div>
+        <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="config-item">
+        <div class="config-left">
+          <div class="config-title">Proposta de renovação</div>
+          <div class="config-sub">Envia proposta automática no fim do contrato</div>
+        </div>
+        <div class="toggle off" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="config-item">
+        <div class="config-left">
+          <div class="config-title">Horário comercial somente</div>
+          <div class="config-sub">IA responde apenas das 8h às 18h</div>
+        </div>
+        <div class="toggle off" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
+
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <div class="bnav-item" onclick="window.location.href='dashboard_motogestao.html'"><div class="bnav-icon">📊</div><div class="bnav-label">Dashboard</div></div>
+  <div class="bnav-item" onclick="window.location.href='frota_motogestao.html'"><div class="bnav-icon">🏍️</div><div class="bnav-label">Frota</div></div>
+  <div class="bnav-item" onclick="window.location.href='clientes_motogestao.html'"><div class="bnav-icon">👥</div><div class="bnav-label">Clientes</div></div>
+  <div class="bnav-item" onclick="window.location.href='financeiro_motogestao.html'"><div class="bnav-icon">💰</div><div class="bnav-label">Finanças</div></div>
+  <div class="bnav-item active" onclick="window.location.href='ia_motogestao.html'">
+    <div class="bnav-icon">📲</div><div class="bnav-label">IA</div>
+    <div class="bnav-dot"></div>
+  </div>
+</div>
+
+<script>
+function toggleSwitch(el) {
+  el.classList.toggle('on');
+  el.classList.toggle('off');
+}
+
+const iaResponses = [
+  'Olá! Temos motos disponíveis a partir de R$600/mês. Posso te ajudar com mais informações? 🏍️',
+  'O contrato é mensal com renovação automática. Documentos necessários: CNH, CPF e comprovante de residência.',
+  'Para regularizar o pagamento, você pode usar PIX, boleto ou dinheiro na nossa sede.',
+  'Temos Honda CG 160 (R$890/mês), Suzuki EN 125 (R$650/mês) e Yamaha Factor 150 (R$750/mês) disponíveis!',
+  'A renovação pode ser feita por 3 ou 6 meses com desconto especial. Qual prefere? 🎉',
+  'Nossa sede funciona de segunda a sexta das 8h às 18h e aos sábados das 8h às 12h.',
+];
+let rIdx = 0;
+
+function sendMsg() {
+  const input = document.getElementById('chatInput');
+  const val = input.value.trim();
+  if (!val) return;
+
+  const msgs = document.getElementById('chatMessages');
+  const now = new Date();
+  const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  msgs.innerHTML += `<div class="msg received" style="animation:none"><div class="msg-sender" style="color:var(--text2)">👤 Você</div>${val}<div class="msg-time">${time}</div></div>`;
+  input.value = '';
+
+  setTimeout(() => {
+    const resp = iaResponses[rIdx % iaResponses.length]; rIdx++;
+    msgs.innerHTML += `<div class="msg sent" style="animation:none"><div class="msg-sender" style="color:var(--violet)">🤖 MotoGestão IA</div>${resp}<div class="msg-time">${time} ✓✓</div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 900);
+
+  msgs.scrollTop = msgs.scrollHeight;
+}
+</script>
+</body>
+</html>
