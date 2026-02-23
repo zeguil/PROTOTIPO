@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MotoGestão · Clientes</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080b10;--s1:#0e1219;--s2:#141820;--s3:#1c2130;--s4:#232838;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --amber:#f59e0b;--amber-d:#d97706;--amber-g:rgba(245,158,11,.15);
+  --emerald:#10b981;--emerald-g:rgba(16,185,129,.13);
+  --rose:#f43f5e;--rose-g:rgba(244,63,94,.13);
+  --sky:#38bdf8;--sky-g:rgba(56,189,248,.13);
+  --violet:#a78bfa;--violet-g:rgba(167,139,250,.13);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+  --r-sm:10px;--r-md:16px;--r-lg:22px;--r-xl:28px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);min-height:100vh;overflow:hidden;}
+.shell{max-width:420px;margin:0 auto;height:100vh;background:var(--bg);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.shell::before{content:'';position:absolute;top:-100px;left:-60px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+.statusbar{display:flex;justify-content:space-between;align-items:center;padding:14px 22px 0;flex-shrink:0;position:relative;z-index:10;}
+.sb-time{font-family:'Bebas Neue';font-size:17px;letter-spacing:1px;color:var(--text);}
+.top-header{padding:12px 20px 0;flex-shrink:0;position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;}
+.page-title{font-family:'Bebas Neue';font-size:32px;letter-spacing:2px;color:var(--text);}
+.page-title span{color:var(--sky);}
+.icon-btn{width:40px;height:40px;border-radius:var(--r-sm);background:var(--s2);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;}
+.stats-strip{display:flex;gap:8px;padding:14px 20px 0;flex-shrink:0;}
+.stat-chip{flex:1;background:var(--s2);border:1.5px solid var(--border);border-radius:12px;padding:10px 8px;text-align:center;}
+.stat-chip-val{font-family:'Bebas Neue';font-size:22px;letter-spacing:1px;line-height:1;}
+.stat-chip-label{font-size:9px;font-weight:600;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.4px;}
+.search-wrap{padding:12px 20px 0;flex-shrink:0;}
+.search-box{display:flex;align-items:center;gap:10px;background:var(--s2);border:1.5px solid var(--border2);border-radius:14px;padding:11px 16px;transition:border-color .2s;}
+.search-box:focus-within{border-color:var(--sky);}
+.search-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;}
+.search-input::placeholder{color:var(--text3);}
+.filter-wrap{display:flex;gap:7px;padding:12px 20px 0;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+.filter-wrap::-webkit-scrollbar{display:none;}
+.pill{display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:99px;white-space:nowrap;cursor:pointer;border:1.5px solid var(--border2);color:var(--text3);background:var(--s2);font-size:12px;font-weight:600;transition:all .18s;flex-shrink:0;}
+.pill.active{background:var(--sky);border-color:var(--sky);color:var(--bg);}
+.pill.green.active{background:var(--emerald);border-color:var(--emerald);color:#fff;}
+.pill.red.active{background:var(--rose);border-color:var(--rose);color:#fff;}
+.pill.amber.active{background:var(--amber);border-color:var(--amber);color:var(--bg);}
+.sort-row{display:flex;align-items:center;justify-content:space-between;padding:10px 20px 0;flex-shrink:0;}
+.sort-label{font-size:12px;color:var(--text3);font-weight:500;}
+.sort-select{background:var(--s2);border:1.5px solid var(--border2);border-radius:8px;padding:5px 10px;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;outline:none;cursor:pointer;}
+.list-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 16px 100px;scrollbar-width:none;}
+.list-area::-webkit-scrollbar{display:none;}
+
+/* Cliente Card */
+.cli-card{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color .2s,transform .15s;animation:fadeUp .35s ease both;position:relative;overflow:hidden;}
+.cli-card:active{transform:scale(.985);}
+.cli-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--r-lg) var(--r-lg) 0 0;}
+.cli-card.emdia::before{background:var(--emerald);}
+.cli-card.atrasado::before{background:var(--rose);}
+.cli-card.vencendo::before{background:var(--amber);}
+.cli-card.encerrado::before{background:var(--text3);}
+
+.card-top-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+.cli-avatar{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:18px;letter-spacing:.5px;flex-shrink:0;}
+.cli-main{flex:1;min-width:0;}
+.cli-nome{font-family:'Bebas Neue';font-size:18px;letter-spacing:.8px;color:var(--text);line-height:1;}
+.cli-cpf{font-size:11px;color:var(--text3);margin-top:3px;}
+.cli-badge{display:inline-block;padding:4px 10px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
+.badge-emdia{background:var(--emerald-g);color:var(--emerald);}
+.badge-atrasado{background:var(--rose-g);color:var(--rose);}
+.badge-vencendo{background:var(--amber-g);color:var(--amber);}
+.badge-encerrado{background:rgba(71,85,105,.15);color:var(--text3);}
+.cli-right{text-align:right;flex-shrink:0;}
+.cli-valor{font-family:'Bebas Neue';font-size:20px;letter-spacing:1px;color:var(--amber);}
+.cli-valor span{font-size:11px;color:var(--text3);font-family:'Plus Jakarta Sans';font-weight:500;}
+
+.card-mid{display:flex;gap:8px;padding:10px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:10px;}
+.cmi{flex:1;text-align:center;}
+.cmi-val{font-family:'Bebas Neue';font-size:15px;letter-spacing:.5px;color:var(--text);}
+.cmi-label{font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:1px;}
+
+.card-bot{display:flex;align-items:center;justify-content:space-between;}
+.moto-chip{display:flex;align-items:center;gap:6px;}
+.moto-chip-icon{font-size:18px;}
+.moto-chip-info .moto-modelo{font-size:12px;font-weight:600;color:var(--text2);}
+.moto-chip-info .moto-placa{font-size:10px;color:var(--text3);margin-top:1px;}
+.card-actions{display:flex;gap:6px;}
+.action-sm{width:32px;height:32px;border-radius:9px;background:var(--s3);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;}
+
+/* Inadimplência bar */
+.inadimplencia-bar{height:3px;border-radius:99px;margin-top:8px;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{width:100%;max-width:420px;max-height:92vh;overflow-y:auto;background:var(--s1);border-radius:var(--r-xl) var(--r-xl) 0 0;border-top:1.5px solid var(--border2);transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);scrollbar-width:none;}
+.modal::-webkit-scrollbar{display:none;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;border-radius:99px;background:var(--border2);margin:12px auto 0;}
+.modal-inner{padding:16px 20px 40px;}
+.modal-close{width:34px;height:34px;border-radius:10px;background:var(--s3);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--text2);}
+.modal-section{font-family:'Bebas Neue';font-size:14px;letter-spacing:1.2px;color:var(--text3);text-transform:uppercase;margin-bottom:10px;margin-top:18px;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.info-tile{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:12px;}
+.info-tile-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.info-tile-val{font-family:'Bebas Neue';font-size:19px;letter-spacing:.8px;color:var(--text);}
+.info-tile-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+.hist-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s2);border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;}
+.hist-icon{width:34px;height:34px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.hist-info{flex:1;min-width:0;}
+.hist-title{font-size:13px;font-weight:600;color:var(--text);}
+.hist-date{font-size:11px;color:var(--text3);margin-top:2px;}
+.hist-val{font-family:'Bebas Neue';font-size:16px;letter-spacing:.5px;}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px;}
+.action-btn{padding:14px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:opacity .15s;}
+.action-btn:active{opacity:.85;}
+.action-btn.primary{background:var(--sky);color:var(--bg);grid-column:1/-1;}
+.action-btn.secondary{background:var(--s3);color:var(--text2);border:1.5px solid var(--border2);}
+.action-btn.danger{background:var(--rose-g);color:var(--rose);border:1.5px solid rgba(244,63,94,.25);}
+
+/* FAB */
+.fab{position:fixed;bottom:80px;right:calc(50% - 200px);width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--sky),#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--bg);cursor:pointer;z-index:99;box-shadow:0 8px 30px rgba(56,189,248,.35);transition:transform .15s;}
+.fab:active{transform:scale(.92);}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:rgba(8,11,16,.96);backdrop-filter:blur(20px);border-top:1px solid var(--border2);display:flex;padding:10px 0 20px;z-index:100;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px 0;}
+.bnav-icon{font-size:22px;transition:transform .2s;}
+.bnav-label{font-size:10px;font-weight:600;color:var(--text3);transition:color .2s;}
+.bnav-item.active .bnav-label{color:var(--sky);}
+.bnav-item.active .bnav-icon{transform:scale(1.15);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.cli-card:nth-child(1){animation-delay:.04s;}
+.cli-card:nth-child(2){animation-delay:.08s;}
+.cli-card:nth-child(3){animation-delay:.12s;}
+.cli-card:nth-child(4){animation-delay:.16s;}
+.cli-card:nth-child(5){animation-delay:.20s;}
+.cli-card:nth-child(6){animation-delay:.24s;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="statusbar">
+    <!-- <div class="sb-time">09:41</div> -->
+    <div style="display:flex;gap:6px;align-items:center;">
+      <!-- <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><rect x=".5" y=".5" width="13" height="11" rx="3.5" stroke="#475569"/><rect x="2" y="2" width="8" height="8" rx="2" fill="#38bdf8"/><path d="M14.5 4v4a2 2 0 000-4z" fill="#475569"/></svg> -->
+    </div>
+  </div>
+
+  <div class="top-header">
+    <div>
+      <div style="font-size:11px;color:var(--text3);font-weight:500;margin-bottom:2px;">Gestão de Clientes</div>
+      <div class="page-title">Clientes <span>47</span></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <div class="icon-btn">📤</div>
+      <div class="icon-btn">⚙️</div>
+    </div>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-chip">
+      <div class="stat-chip-val" style="color:var(--emerald)">41</div>
+      <div class="stat-chip-label">Em dia</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-val" style="color:var(--rose)">3</div>
+      <div class="stat-chip-label">Atrasados</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-val" style="color:var(--amber)">6</div>
+      <div class="stat-chip-label">Vencendo</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-val" style="color:var(--text3)">5</div>
+      <div class="stat-chip-label">Inativos</div>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <span>🔍</span>
+      <input class="search-input" type="text" placeholder="Buscar nome, CPF, placa..." oninput="handleSearch(this.value)">
+    </div>
+  </div>
+
+  <div class="filter-wrap">
+    <div class="pill active" onclick="setFilter(this,'todos')">Todos <span style="background:var(--s3);border-radius:99px;padding:1px 6px;font-size:10px;margin-left:2px">47</span></div>
+    <div class="pill green" onclick="setFilter(this,'emdia')">✅ Em dia <span style="background:var(--s3);border-radius:99px;padding:1px 6px;font-size:10px;margin-left:2px">41</span></div>
+    <div class="pill red" onclick="setFilter(this,'atrasado')">🔴 Atrasados <span style="background:var(--s3);border-radius:99px;padding:1px 6px;font-size:10px;margin-left:2px">3</span></div>
+    <div class="pill amber" onclick="setFilter(this,'vencendo')">⏰ Vencendo <span style="background:var(--s3);border-radius:99px;padding:1px 6px;font-size:10px;margin-left:2px">6</span></div>
+    <div class="pill" onclick="setFilter(this,'encerrado')" style="border-color:rgba(71,85,105,.4)">⬜ Inativos</div>
+  </div>
+
+  <div class="sort-row">
+    <span id="resultCount" style="font-size:12px;color:var(--text3);font-weight:500">Exibindo 6 clientes</span>
+    <select class="sort-select" onchange="handleSort(this.value)">
+      <option value="nome">Nome A-Z</option>
+      <option value="valor">Maior Valor</option>
+      <option value="atraso">Mais Atrasado</option>
+      <option value="vence">Vence Antes</option>
+    </select>
+  </div>
+
+  <div class="list-area" id="listArea"></div>
+</div>
+
+<div class="fab">+</div>
+
+<div class="bottom-nav">
+  <div class="bnav-item" onclick="window.location.href='dashboard.html'">
+    <div class="bnav-icon">📊</div><div class="bnav-label">Dashboard</div>
+  </div>
+  <div class="bnav-item" onclick="window.location.href='frota.html'">
+    <div class="bnav-icon">🏍️</div><div class="bnav-label">Frota</div>
+  </div>
+  <div class="bnav-item active" onclick="window.location.href='clientes.html'">
+    <div class="bnav-icon">👥</div><div class="bnav-label">Clientes</div>
+  </div>
+  <div class="bnav-item" onclick="window.location.href='financeiro.html'">
+    <div class="bnav-icon">💰</div><div class="bnav-label">Finanças</div>
+  </div>
+  <div class="bnav-item" onclick="window.location.href='ia_motogestao.html'">
+    <div class="bnav-icon">📲</div><div class="bnav-label">IA</div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-inner" id="modalInner"></div>
+  </div>
+</div>
+
+<script>
+const clientes = [
+  {
+    id:1,nome:'João Batista Silva',iniciais:'JB',cpf:'042.***.***.10',
+    tel:'(92) 99201-3344',status:'emdia',
+    moto:'Honda CG 160',placa:'PBX-2234',
+    valor:890,parcela:'3/12',vence:'05/03/2025',diasAtraso:0,
+    endereco:'R. das Flores, 214 - Cidade Nova',
+    historico:[
+      {tipo:'💸',titulo:'Pagamento Recebido',data:'10/02/2025',val:'R$890',cor:'var(--emerald)'},
+      {tipo:'💸',titulo:'Pagamento Recebido',data:'10/01/2025',val:'R$890',cor:'var(--emerald)'},
+      {tipo:'📋',titulo:'Contrato Assinado',data:'01/12/2024',val:'12 meses',cor:'var(--sky)'},
+    ],
+    cor:'#1d4ed8',bg:'rgba(29,78,216,.2)'
+  },
+  {
+    id:2,nome:'Carlos Mendes',iniciais:'CM',cpf:'098.***.***.44',
+    tel:'(92) 98877-5566',status:'atrasado',
+    moto:'Suzuki EN 125',placa:'QKW-3312',
+    valor:650,parcela:'4/12',vence:'20/01/2025',diasAtraso:35,
+    endereco:'Av. Brasil, 880 - Aleixo',
+    historico:[
+      {tipo:'⚠️',titulo:'2ª Notificação Enviada',data:'20/02/2025',val:'—',cor:'var(--rose)'},
+      {tipo:'⚠️',titulo:'1ª Notificação Enviada',data:'10/02/2025',val:'—',cor:'var(--amber)'},
+      {tipo:'💸',titulo:'Pagamento Recebido',data:'10/01/2025',val:'R$650',cor:'var(--emerald)'},
+    ],
+    cor:'#dc2626',bg:'rgba(220,38,38,.2)'
+  },
+  {
+    id:3,nome:'Maria da Rocha',iniciais:'MR',cpf:'123.***.***.77',
+    tel:'(92) 99100-2233',status:'emdia',
+    moto:'Honda Pop 110i',placa:'TYU-1190',
+    valor:580,parcela:'7/12',vence:'12/03/2025',diasAtraso:0,
+    endereco:'R. Tarumã, 55 - Adrianópolis',
+    historico:[
+      {tipo:'💸',titulo:'Pagamento Recebido',data:'12/02/2025',val:'R$580',cor:'var(--emerald)'},
+      {tipo:'💸',titulo:'Pagamento Recebido',data:'12/01/2025',val:'R$580',cor:'var(--emerald)'},
+    ],
+    cor:'#065f46',bg:'rgba(6,95,70,.25)'
+  },
+  {
+    id:4,nome:'Anderson Lopes',iniciais:'AL',cpf:'055.***.***.22',
+    tel:'(92) 99300-4455',status:'vencendo',
+    moto:'Honda Titan 160',placa:'WQA-8821',
+    valor:950,parcela:'2/6',vence:'28/02/2025',diasAtraso:0,
+    endereco:'R. do Sol, 419 - Chapada',
+    historico:[
+      {tipo:'💸',titulo:'Pagamento Recebido',data:'01/02/2025',val:'R$950',cor:'var(--emerald)'},
+      {tipo:'📋',titulo:'Contrato Iniciado',data:'01/01/2025',val:'6 meses',cor:'var(--sky)'},
+    ],
+    cor:'#78350f',bg:'rgba(120,53,15,.25)'
+  },
+  {
+    id:5,nome:'Pedro Augusto Lima',iniciais:'PL',cpf:'077.***.***.31',
+    tel:'(92) 98701-9988',status:'atrasado',
+    moto:'Yamaha Factor 150',placa:'RXT-9981',
+    valor:750,parcela:'5/8',vence:'08/02/2025',diasAtraso:16,
+    endereco:'Av. Min. Waldemar Pedrosa, 300',
+    historico:[
+      {tipo:'⚠️',titulo:'Pagamento em Atraso',data:'08/02/2025',val:'R$750',cor:'var(--rose)'},
+      {tipo:'💸',titulo:'Pagamento Recebido',data:'08/01/2025',val:'R$750',cor:'var(--emerald)'},
+    ],
+    cor:'#7c3aed',bg:'rgba(124,58,237,.2)'
+  },
+  {
+    id:6,nome:'Fernanda Costa',iniciais:'FC',cpf:'199.***.***.08',
+    tel:'(92) 99500-1122',status:'vencendo',
+    moto:'Yamaha Crypton 115',placa:'OPK-7723',
+    valor:600,parcela:'11/12',vence:'03/03/2025',diasAtraso:0,
+    endereco:'R. Floriano Peixoto, 82 - Centro',
+    historico:[
+      {tipo:'💸',titulo:'Pagamento Recebido',data:'03/02/2025',val:'R$600',cor:'var(--emerald)'},
+      {tipo:'🔄',titulo:'Proposta de Renovação',data:'01/02/2025',val:'—',cor:'var(--sky)'},
+    ],
+    cor:'#be185d',bg:'rgba(190,24,93,.2)'
+  },
+];
+
+let currentFilter = 'todos';
+let currentSearch = '';
+
+function getFiltered() {
+  return clientes.filter(c => {
+    const matchFilter = currentFilter === 'todos' || c.status === currentFilter;
+    const q = currentSearch.toLowerCase();
+    const matchSearch = !q || c.nome.toLowerCase().includes(q) || c.cpf.includes(q) || c.placa.toLowerCase().includes(q) || c.moto.toLowerCase().includes(q);
+    return matchFilter && matchSearch;
+  });
+}
+
+function statusLabel(s) {
+  return {emdia:'Em dia',atrasado:'Atrasado',vencendo:'Vencendo',encerrado:'Encerrado'}[s]||s;
+}
+function badgeClass(s) {
+  return {emdia:'badge-emdia',atrasado:'badge-atrasado',vencendo:'badge-vencendo',encerrado:'badge-encerrado'}[s]||'';
+}
+
+function renderCards() {
+  const list = getFiltered();
+  document.getElementById('resultCount').textContent = `Exibindo ${list.length} cliente${list.length!==1?'s':''}`;
+  if (!list.length) {
+    document.getElementById('listArea').innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center"><div style="font-size:52px;margin-bottom:14px;opacity:.5">👥</div><div style="font-family:'Bebas Neue';font-size:22px;color:var(--text2)">Nenhum cliente encontrado</div></div>`;
+    return;
+  }
+  document.getElementById('listArea').innerHTML = list.map(renderCard).join('');
+}
+
+function renderCard(c) {
+  const diasText = c.diasAtraso > 0 ? `${c.diasAtraso} dias atraso` : (c.status==='vencendo' ? 'Vence em breve' : 'Em dia');
+  const barColor = c.status==='atrasado'?'var(--rose)':c.status==='vencendo'?'var(--amber)':'var(--emerald)';
+  return `
+  <div class="cli-card ${c.status}" onclick="openDetail(${c.id})">
+    <div class="card-top-row">
+      <div class="cli-avatar" style="background:${c.bg};color:${c.cor}">${c.iniciais}</div>
+      <div class="cli-main">
+        <div class="cli-nome">${c.nome}</div>
+        <div class="cli-cpf">CPF ${c.cpf} · ${c.tel}</div>
+        <div style="margin-top:5px"><span class="cli-badge ${badgeClass(c.status)}">${statusLabel(c.status)}</span></div>
+      </div>
+      <div class="cli-right">
+        <div class="cli-valor">R$${c.valor}<span>/mês</span></div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;text-align:right">${diasText}</div>
+      </div>
+    </div>
+
+    <div class="card-mid">
+      <div class="cmi">
+        <div class="cmi-val">${c.parcela}</div>
+        <div class="cmi-label">Parcela</div>
+      </div>
+      <div style="width:1px;background:var(--border)"></div>
+      <div class="cmi">
+        <div class="cmi-val">${c.vence.slice(0,5)}</div>
+        <div class="cmi-label">Vencimento</div>
+      </div>
+      <div style="width:1px;background:var(--border)"></div>
+      <div class="cmi">
+        <div class="cmi-val" style="font-size:13px">${c.diasAtraso>0?'R$'+c.valor:'R$0'}</div>
+        <div class="cmi-label">Em aberto</div>
+      </div>
+      <div style="width:1px;background:var(--border)"></div>
+      <div class="cmi">
+        <div class="cmi-val" style="font-size:13px;color:var(--emerald)">R$${parseInt(c.parcela)*c.valor}</div>
+        <div class="cmi-label">Pago Total</div>
+      </div>
+    </div>
+
+    <div class="card-bot">
+      <div class="moto-chip">
+        <div class="moto-chip-icon">🏍️</div>
+        <div class="moto-chip-info">
+          <div class="moto-modelo">${c.moto}</div>
+          <div class="moto-placa">${c.placa}</div>
+        </div>
+      </div>
+      <div class="card-actions">
+        <div class="action-sm" onclick="event.stopPropagation()">📞</div>
+        <div class="action-sm" onclick="event.stopPropagation()">📲</div>
+        <div class="action-sm" onclick="event.stopPropagation()">⋯</div>
+      </div>
+    </div>
+
+    ${c.status==='atrasado'?`
+    <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:10px;color:var(--rose);font-weight:600">⚠️ Cobrança pendente</span>
+        <span style="font-size:10px;font-weight:700;color:var(--rose)">${c.diasAtraso} dias</span>
+      </div>
+      <div style="height:4px;background:var(--s3);border-radius:99px;overflow:hidden"><div style="height:100%;width:${Math.min(c.diasAtraso/60*100,100)}%;background:var(--rose);border-radius:99px"></div></div>
+    </div>`:''}
+  </div>`;
+}
+
+function openDetail(id) {
+  const c = clientes.find(x => x.id === id);
+  const histHtml = c.historico.map(h => `
+    <div class="hist-item">
+      <div class="hist-icon">${h.tipo}</div>
+      <div class="hist-info"><div class="hist-title">${h.titulo}</div><div class="hist-date">${h.data}</div></div>
+      <div class="hist-val" style="color:${h.cor}">${h.val}</div>
+    </div>`).join('');
+
+  document.getElementById('modalInner').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div style="width:60px;height:60px;border-radius:16px;background:${c.bg};color:${c.cor};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:22px">${c.iniciais}</div>
+        <div>
+          <div style="font-family:'Bebas Neue';font-size:24px;letter-spacing:1px;color:var(--text)">${c.nome}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">CPF ${c.cpf}</div>
+          <div style="margin-top:5px"><span class="cli-badge ${badgeClass(c.status)}">${statusLabel(c.status)}</span></div>
+        </div>
+      </div>
+      <div class="modal-close" onclick="closeModal()">✕</div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-tile"><div class="info-tile-label">Valor Mensal</div><div class="info-tile-val" style="color:var(--amber)">R$${c.valor}</div><div class="info-tile-sub">por mês</div></div>
+      <div class="info-tile"><div class="info-tile-label">Parcela</div><div class="info-tile-val">${c.parcela}</div><div class="info-tile-sub">do contrato</div></div>
+      <div class="info-tile"><div class="info-tile-label">Vencimento</div><div class="info-tile-val" style="font-size:16px">${c.vence}</div><div class="info-tile-sub">próx. pagamento</div></div>
+      <div class="info-tile"><div class="info-tile-label">Em aberto</div><div class="info-tile-val" style="color:${c.diasAtraso>0?'var(--rose)':'var(--emerald)'}">R$${c.diasAtraso>0?c.valor:0}</div><div class="info-tile-sub">${c.diasAtraso>0?c.diasAtraso+' dias atraso':'sem pendências'}</div></div>
+    </div>
+
+    <div class="modal-section">Moto Vinculada</div>
+    <div style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:4px">
+      <div style="font-size:28px">🏍️</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">${c.moto}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">${c.placa}</div>
+      </div>
+      <div style="margin-left:auto">
+        <div style="font-family:'Bebas Neue';font-size:18px;color:var(--amber)">R$${c.valor}/mês</div>
+      </div>
+    </div>
+
+    <div class="modal-section">Contato</div>
+    <div style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${c.tel}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${c.endereco}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--emerald-g);border:1.5px solid rgba(16,185,129,.25);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer">📞</div>
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--s3);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer">📲</div>
+      </div>
+    </div>
+
+    <div class="modal-section">Histórico</div>
+    ${histHtml}
+
+    <div class="modal-actions">
+      ${c.diasAtraso>0
+        ? `<button class="action-btn primary">💸 Registrar Pagamento</button>`
+        : c.status==='vencendo'
+        ? `<button class="action-btn primary">🔄 Renovar Contrato</button>`
+        : `<button class="action-btn primary">💸 Registrar Pagamento</button>`
+      }
+      <button class="action-btn secondary">✏️ Editar</button>
+      <button class="action-btn danger">❌ Encerrar Contrato</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modalOverlay'))
+    document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function setFilter(el, filter) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = filter;
+  renderCards();
+}
+
+function handleSearch(val) { currentSearch = val; renderCards(); }
+function handleSort(val) {
+  if (val==='valor') clientes.sort((a,b)=>b.valor-a.valor);
+  else if (val==='atraso') clientes.sort((a,b)=>b.diasAtraso-a.diasAtraso);
+  else if (val==='vence') clientes.sort((a,b)=>a.vence.localeCompare(b.vence));
+  else clientes.sort((a,b)=>a.nome.localeCompare(b.nome));
+  renderCards();
+}
+
+renderCards();
+</script>
+</body>
+</html>

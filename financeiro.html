@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MotoGestão · Financeiro</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#080b10;--s1:#0e1219;--s2:#141820;--s3:#1c2130;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);--amber:#f59e0b;--amber-g:rgba(245,158,11,.15);--emerald:#10b981;--emerald-g:rgba(16,185,129,.13);--rose:#f43f5e;--rose-g:rgba(244,63,94,.13);--sky:#38bdf8;--sky-g:rgba(56,189,248,.13);--violet:#a78bfa;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;--r-md:16px;--r-lg:22px;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);min-height:100vh;}
+.shell{max-width:420px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;}
+.shell::before{content:'';position:fixed;top:-80px;right:-40px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.08) 0%,transparent 70%);pointer-events:none;z-index:0;}
+.statusbar{display:flex;justify-content:space-between;align-items:center;padding:14px 22px 0;position:relative;z-index:10;}
+.sb-time{font-family:'Bebas Neue';font-size:17px;letter-spacing:1px;}
+.content{overflow-y:auto;height:calc(100vh - 70px);padding-bottom:90px;-webkit-overflow-scrolling:touch;position:relative;z-index:1;}
+.content::-webkit-scrollbar{display:none;}
+.page-header{padding:12px 20px 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.page-title{font-family:'Bebas Neue';font-size:32px;letter-spacing:2px;color:var(--text);}
+.page-title span{color:var(--emerald);}
+.section{padding:0 16px;margin-bottom:20px;}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.section-title{font-family:'Bebas Neue';font-size:18px;letter-spacing:1.5px;color:var(--text2);}
+/* Hero */
+.hero{margin:14px 16px 16px;border-radius:var(--r-lg);background:linear-gradient(135deg,#1a2035,#0f1420);border:1.5px solid var(--border2);padding:22px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,var(--emerald-g),transparent 70%);}
+.hero-tag{display:inline-flex;align-items:center;gap:5px;background:var(--emerald-g);border:1px solid rgba(16,185,129,.3);border-radius:99px;padding:4px 10px;font-size:10px;font-weight:700;color:var(--emerald);letter-spacing:.4px;text-transform:uppercase;margin-bottom:12px;}
+.hero-val{font-family:'Bebas Neue';font-size:46px;letter-spacing:2px;line-height:1;color:var(--text);}
+.hero-val span{color:var(--emerald);}
+.hero-row{display:flex;gap:16px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}
+.hero-stat{flex:1;}
+.hero-stat-label{font-size:10px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
+.hero-stat-val{font-family:'Bebas Neue';font-size:20px;letter-spacing:1px;}
+/* Metric grid */
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mc{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:16px;position:relative;overflow:hidden;}
+.mc-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:10px;}
+.mc-val{font-family:'Bebas Neue';font-size:26px;letter-spacing:1px;line-height:1;}
+.mc-label{font-size:11px;color:var(--text2);font-weight:500;margin-top:3px;}
+.mc-chg{font-size:10px;font-weight:700;margin-top:6px;}
+.mc-chg.up{color:var(--emerald);}
+.mc-chg.down{color:var(--rose);}
+/* Chart card */
+.chart-card{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:18px;margin-bottom:12px;}
+.chart-title{font-size:14px;font-weight:700;margin-bottom:14px;}
+/* List items */
+.fin-item{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.fin-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.fin-info{flex:1;min-width:0;}
+.fin-title{font-size:13px;font-weight:600;color:var(--text);}
+.fin-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.fin-right{text-align:right;}
+.fin-val{font-family:'Bebas Neue';font-size:16px;letter-spacing:.5px;}
+/* badge */
+.chip{display:inline-block;padding:3px 8px;border-radius:6px;font-size:9px;font-weight:700;text-transform:uppercase;margin-top:4px;}
+.chip-green{background:var(--emerald-g);color:var(--emerald);}
+.chip-red{background:var(--rose-g);color:var(--rose);}
+.chip-sky{background:var(--sky-g);color:var(--sky);}
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:rgba(8,11,16,.96);backdrop-filter:blur(20px);border-top:1px solid var(--border2);display:flex;padding:10px 0 20px;z-index:100;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px 0;}
+.bnav-icon{font-size:22px;transition:transform .2s;}
+.bnav-label{font-size:10px;font-weight:600;color:var(--text3);transition:color .2s;}
+.bnav-item.active .bnav-label{color:var(--emerald);}
+.bnav-item.active .bnav-icon{transform:scale(1.15);}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="statusbar">
+    <!-- <div class="sb-time">09:41</div> -->
+    <!-- <svg width="22" height="12" viewBox="0 0 22 12" fill="none"><rect x=".5" y=".5" width="18" height="11" rx="3.5" stroke="#475569"/><rect x="2" y="2" width="11" height="8" rx="2" fill="#10b981"/><path d="M20 4v4a2 2 0 000-4z" fill="#475569"/></svg> -->
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <div>
+        <div style="font-size:11px;color:var(--text3);font-weight:500;margin-bottom:2px">Controle Financeiro</div>
+        <div class="page-title">Finanças <span>·</span></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="width:40px;height:40px;border-radius:10px;background:var(--s2);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer">📤</div>
+      </div>
+    </div>
+
+    <!-- Period pills -->
+    <div style="display:flex;gap:7px;padding:10px 20px;overflow-x:auto;scrollbar-width:none;">
+      <div style="padding:7px 16px;border-radius:99px;background:var(--emerald);color:var(--bg);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Fev 2025</div>
+      <div style="padding:7px 16px;border-radius:99px;background:var(--s2);border:1.5px solid var(--border2);color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Jan 2025</div>
+      <div style="padding:7px 16px;border-radius:99px;background:var(--s2);border:1.5px solid var(--border2);color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Dez 2024</div>
+      <div style="padding:7px 16px;border-radius:99px;background:var(--s2);border:1.5px solid var(--border2);color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">6 meses</div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-tag">💰 Receita Bruta · Fev 2025</div>
+      <div class="hero-val"><span>R$</span> 18.420</div>
+      <div class="hero-row">
+        <div class="hero-stat">
+          <div class="hero-stat-label">Lucro</div>
+          <div class="hero-stat-val" style="color:var(--emerald)">R$6.210</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:1px">↑ 8,3%</div>
+        </div>
+        <div style="width:1px;background:var(--border)"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-label">Despesas</div>
+          <div class="hero-stat-val" style="color:var(--rose)">R$12.210</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:1px">↓ 2%</div>
+        </div>
+        <div style="width:1px;background:var(--border)"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-label">Margem</div>
+          <div class="hero-stat-val" style="color:var(--sky)">33,7%</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:1px">Meta 35%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="section">
+      <div class="section-head"><div class="section-title">Indicadores</div></div>
+      <div class="metric-grid">
+        <div class="mc">
+          <div class="mc-icon" style="background:var(--emerald-g)">📈</div>
+          <div class="mc-val" style="color:var(--emerald)">R$6.210</div>
+          <div class="mc-label">Lucro Líquido</div>
+          <div class="mc-chg up">↑ 8,3% vs Jan</div>
+        </div>
+        <div class="mc">
+          <div class="mc-icon" style="background:var(--rose-g)">⚠️</div>
+          <div class="mc-val" style="color:var(--rose)">R$2.290</div>
+          <div class="mc-label">Inadimplência</div>
+          <div class="mc-chg down">3 clientes</div>
+        </div>
+        <div class="mc">
+          <div class="mc-icon" style="background:var(--sky-g)">📅</div>
+          <div class="mc-val" style="color:var(--sky)">R$19.100</div>
+          <div class="mc-label">Prev. 30 dias</div>
+          <div class="mc-chg up">Contratos ativos</div>
+        </div>
+        <div class="mc">
+          <div class="mc-icon" style="background:var(--amber-g)">🏍️</div>
+          <div class="mc-val" style="color:var(--amber)">R$430</div>
+          <div class="mc-label">Custo Médio/Moto</div>
+          <div class="mc-chg down">↑ vs Jan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receita vs Despesa chart -->
+    <div class="section">
+      <div class="section-head"><div class="section-title">Receita vs Despesa</div></div>
+      <div class="chart-card">
+        <canvas id="barChart" height="150"></canvas>
+      </div>
+    </div>
+
+    <!-- Receitas -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Receitas do Mês</div>
+        <div style="font-family:'Bebas Neue';font-size:18px;color:var(--emerald)">R$18.420</div>
+      </div>
+      <div class="fin-item">
+        <div class="fin-icon" style="background:var(--emerald-g)">💸</div>
+        <div class="fin-info"><div class="fin-title">Aluguéis — 24 contratos</div><div class="fin-sub">Parcelas recebidas no mês</div></div>
+        <div class="fin-right"><div class="fin-val" style="color:var(--emerald)">R$14.370</div><div class="chip chip-green">Recebido</div></div>
+      </div>
+      <div class="fin-item">
+        <div class="fin-icon" style="background:var(--sky-g)">🔄</div>
+        <div class="fin-info"><div class="fin-title">Renovações — 4 contratos</div><div class="fin-sub">Taxas de renovação</div></div>
+        <div class="fin-right"><div class="fin-val" style="color:var(--sky)">R$2.800</div><div class="chip chip-sky">Recebido</div></div>
+      </div>
+      <div class="fin-item">
+        <div class="fin-icon" style="background:var(--amber-g)">⚖️</div>
+        <div class="fin-info"><div class="fin-title">Multas e Juros</div><div class="fin-sub">Atrasos processados</div></div>
+        <div class="fin-right"><div class="fin-val" style="color:var(--amber)">R$1.250</div><div class="chip chip-sky">Recebido</div></div>
+      </div>
+    </div>
+
+    <!-- Despesas -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Despesas do Mês</div>
+        <div style="font-family:'Bebas Neue';font-size:18px;color:var(--rose)">R$12.210</div>
+      </div>
+      <div class="fin-item">
+        <div class="fin-icon" style="background:var(--rose-g)">🔧</div>
+        <div class="fin-info"><div class="fin-title">Manutenções — 6 motos</div><div class="fin-sub">Revisões, peças e mão de obra</div></div>
+        <div class="fin-right"><div class="fin-val" style="color:var(--rose)">R$4.820</div><div class="chip chip-red">Pago</div></div>
+      </div>
+      <div class="fin-item">
+        <div class="fin-icon" style="background:var(--rose-g)">📑</div>
+        <div class="fin-info"><div class="fin-title">IPVA + Seguros</div><div class="fin-sub">Obrigações legais</div></div>
+        <div class="fin-right"><div class="fin-val" style="color:var(--rose)">R$3.900</div><div class="chip chip-red">Pago</div></div>
+      </div>
+      <div class="fin-item">
+        <div class="fin-icon" style="background:var(--rose-g)">🏢</div>
+        <div class="fin-info"><div class="fin-title">Operacional</div><div class="fin-sub">Aluguel, internet, sistema</div></div>
+        <div class="fin-right"><div class="fin-val" style="color:var(--rose)">R$2.490</div><div class="chip chip-red">Pago</div></div>
+      </div>
+      <div class="fin-item">
+        <div class="fin-icon" style="background:var(--rose-g)">📦</div>
+        <div class="fin-info"><div class="fin-title">Outros</div><div class="fin-sub">Combustível, deslocamento</div></div>
+        <div class="fin-right"><div class="fin-val" style="color:var(--rose)">R$1.000</div><div class="chip chip-red">Pago</div></div>
+      </div>
+    </div>
+
+    <!-- Inadimplentes -->
+    <div class="section">
+      <div class="section-head"><div class="section-title">🚨 Inadimplência</div><div style="font-family:'Bebas Neue';font-size:18px;color:var(--rose)">R$2.290</div></div>
+      <div class="fin-item">
+        <div style="width:38px;height:38px;border-radius:11px;background:rgba(220,38,38,.2);color:#dc2626;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:14px;flex-shrink:0">CM</div>
+        <div class="fin-info"><div class="fin-title">Carlos Mendes</div><div class="fin-sub">35 dias em atraso · Suzuki EN 125</div></div>
+        <div class="fin-right"><div class="fin-val" style="color:var(--rose)">R$650</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Notificado ×2</div></div>
+      </div>
+      <div class="fin-item">
+        <div style="width:38px;height:38px;border-radius:11px;background:rgba(124,58,237,.2);color:#7c3aed;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:14px;flex-shrink:0">PL</div>
+        <div class="fin-info"><div class="fin-title">Pedro Augusto Lima</div><div class="fin-sub">16 dias em atraso · Yamaha Factor</div></div>
+        <div class="fin-right"><div class="fin-val" style="color:var(--rose)">R$750</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Notificado ×1</div></div>
+      </div>
+      <div style="background:var(--s2);border:1.5px solid rgba(244,63,94,.2);border-radius:var(--r-md);padding:14px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">Enviar cobranças em massa</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">WhatsApp automático via IA</div>
+        </div>
+        <div style="padding:10px 16px;background:var(--rose);border-radius:10px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap">📲 Cobrar</div>
+      </div>
+    </div>
+
+    <div style="height:20px"></div>
+  </div><!-- end content -->
+</div><!-- end shell -->
+
+<div class="bottom-nav">
+  <div class="bnav-item" onclick="window.location.href='dashboard.html'"><div class="bnav-icon">📊</div><div class="bnav-label">Dashboard</div></div>
+  <div class="bnav-item" onclick="window.location.href='frota.html'"><div class="bnav-icon">🏍️</div><div class="bnav-label">Frota</div></div>
+  <div class="bnav-item" onclick="window.location.href='clientes.html'"><div class="bnav-icon">👥</div><div class="bnav-label">Clientes</div></div>
+  <div class="bnav-item active" onclick="window.location.href='financeiro.html'"><div class="bnav-icon">💰</div><div class="bnav-label">Finanças</div></div>
+  <div class="bnav-item" onclick="window.location.href='ia_motogestao.html'"><div class="bnav-icon">📲</div><div class="bnav-label">IA</div></div>
+</div>
+
+<script>
+Chart.defaults.color='#475569';Chart.defaults.font.family="'Plus Jakarta Sans',sans-serif";
+const gridColor='rgba(255,255,255,0.04)';
+new Chart(document.getElementById('barChart'),{
+  type:'bar',
+  data:{
+    labels:['Set','Out','Nov','Dez','Jan','Fev'],
+    datasets:[
+      {label:'Receita',data:[13200,14800,13900,16100,16500,18420],backgroundColor:'#10b981',borderRadius:6,borderSkipped:false,barPercentage:.55},
+      {label:'Despesa',data:[9800,10100,9600,10800,10770,12210],backgroundColor:'rgba(244,63,94,0.65)',borderRadius:6,borderSkipped:false,barPercentage:.55}
+    ]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:10,boxHeight:10,borderRadius:3,useBorderRadius:true,padding:12,color:'#94a3b8',font:{size:10,weight:'600'}}},tooltip:{backgroundColor:'#1c2130',borderColor:'rgba(255,255,255,.1)',borderWidth:1,callbacks:{label:ctx=>` R$ ${ctx.parsed.y.toLocaleString('pt-BR')}`}}},
+    scales:{x:{grid:{color:gridColor},ticks:{font:{size:10}}},y:{grid:{color:gridColor},ticks:{callback:v=>'R$'+(v/1000).toFixed(0)+'k',font:{size:10}}}}
+  }
+});
+</script>
+</body>
+</html>
